@@ -24,7 +24,12 @@ class Cargo(models.Model):
 
 class DeliveryCar(models.Model):
 	car_id = models.CharField(editable=False, unique=True)
-	current_location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True, related_name='current_position')
+	current_location = models.ForeignKey(
+		Location,
+		on_delete=models.SET_NULL,
+		null=True,
+		related_name='current_position'
+	)
 	tonnage = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(1000)])
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)

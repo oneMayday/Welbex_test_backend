@@ -30,7 +30,6 @@ class Command(BaseCommand):
 
 def create_locations():
     """ Create database records (Location) from csv-file model: """
-
     temp_locations_list = []
     with open(f'{BASE_DIR}/{SEEDING_FILE_NAME}', encoding='utf-8') as seed_file:
         data = islice(reader(seed_file), 1, None)
