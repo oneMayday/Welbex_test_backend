@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
-from delivery import models
-from delivery.models import Location, Cargo
+from delivery.models import Location, Cargo, DeliveryCar
 
 
 class LocationSerializer(serializers.ModelSerializer):
@@ -11,7 +10,7 @@ class LocationSerializer(serializers.ModelSerializer):
     latitude = serializers.CharField(read_only=True)
 
     class Meta:
-        model = models.Location
+        model = Location
         fields = ('zip', 'city', 'state', 'longitude', 'latitude',)
 
 
@@ -19,7 +18,7 @@ class DeliveryCarUpdateSerializer(serializers.ModelSerializer):
     current_location = LocationSerializer(many=False)
 
     class Meta:
-        model = models.DeliveryCar
+        model = DeliveryCar
         fields = ('car_id', 'current_location',)
 
     def update(self, instance, validated_data):
@@ -34,8 +33,18 @@ class DeliveryCarUpdateSerializer(serializers.ModelSerializer):
 
 class CargoSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Cargo
+        model = Cargo
         exclude = ('created_at', 'updated_at',)
+
+
+# class CargoListSerializer(serializers.ModelSerializer):
+#     pickup_location = LocationSerializer(many=False)
+#     delivery_location = LocationSerializer(many=False)
+#     cars_nearby =
+#
+#     class Meta:
+#         model = Cargo
+#         fields = ('pk', 'pickup_location', 'delivery_location', 'cars_nearby')
 
 
 class CargoCreateSerializer(serializers.ModelSerializer):
@@ -43,8 +52,8 @@ class CargoCreateSerializer(serializers.ModelSerializer):
     delivery_location = LocationSerializer(many=False)
 
     class Meta:
-        model = models.Cargo
-        fields = ('pk', 'weight', 'description', 'pickup_location', 'delivery_location',)
+        model = Cargo
+        fields = ('pk', 'weight', 'description', 'pickup_location', 'delivery_location', )
 
     def create(self, validated_data):
         weight = validated_data.get('weight')
@@ -70,5 +79,5 @@ class CargoCreateSerializer(serializers.ModelSerializer):
 
 class CargoUpdateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Cargo
+        model = Cargo
         fields = ('weight', 'description',)
