@@ -21,11 +21,12 @@ class LocationSimpledSerializer(serializers.ModelSerializer):
 
 # DeliveryCar model serializers
 class DeliveryCarsCargoDetailSerializer(serializers.ModelSerializer):
-    distance = serializers.CharField()
+    distance = serializers.IntegerField()
 
     class Meta:
         model = DeliveryCar
         fields = ('pk', 'car_id', 'distance',)
+
 
 
 class DeliveryCarUpdateSerializer(serializers.ModelSerializer):
@@ -82,18 +83,18 @@ class CargoListSerializer(serializers.ModelSerializer):
 
 
 class CargoCreateSerializer(serializers.ModelSerializer):
-    pickup_location = LocationSimpledSerializer(many=False)
-    delivery_location = LocationSimpledSerializer(many=False)
+    pickup = LocationSimpledSerializer(many=False)
+    delivery = LocationSimpledSerializer(many=False)
 
     class Meta:
         model = Cargo
-        fields = ('weight', 'description', 'pickup_location', 'delivery_location', )
+        fields = ('weight', 'description', 'pickup', 'delivery', )
 
     def create(self, validated_data):
         weight = validated_data.get('weight')
         description = validated_data.get('description')
-        location_pickup_zip = validated_data.get('pickup_location').get('zip')
-        location_delivery_zip = validated_data.get('delivery_location').get('zip')
+        location_pickup_zip = validated_data.get('pickup').get('zip')
+        location_delivery_zip = validated_data.get('delivery').get('zip')
 
         try:
             location_pickup = Location.objects.get(zip=location_pickup_zip)
@@ -104,10 +105,10 @@ class CargoCreateSerializer(serializers.ModelSerializer):
 
         try:
             instance = Cargo.objects.create(
-                pickup_location=location_pickup,
-                delivery_location=location_delivery,
+                pickup=location_pickup,
+                delivery=location_delivery,
                 weight=weight,
-                description = description
+                description=description
             )
             return instance
         except TypeError:
