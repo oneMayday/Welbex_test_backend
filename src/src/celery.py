@@ -18,10 +18,10 @@ def debug_task(self):
     print(f"Request: {self.request!r}")
 
 
-# Periodical tasks, based in delivery/tasks.py.
+# Periodical tasks, based in delivery/tasks.py. Car's location updating every 3 minutes.
 app.conf.beat_schedule = {
     'Update delivery cars locations': {
         'task': 'update_delivery_cars_locations',
-        'schedule': 60,
+        'schedule': 180,
     },
 }
