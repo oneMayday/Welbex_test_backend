@@ -12,7 +12,7 @@ from delivery.serializers import (
     DeliveryCarUpdateSerializer,
     LocationSerializer,
 )
-from filters import WeightFilter
+from delivery.filters import WeightFilter
 
 
 class CargoAPIView(viewsets.ModelViewSet):
