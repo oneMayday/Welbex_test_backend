@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from geopy.distance import geodesic
 
-from delivery.models import Cargo, DeliveryCar
+from delivery.models import Cargo, DeliveryCar, Location
 
 
 def get_distance_between(coords1: tuple, coords2: tuple) -> Decimal:
@@ -39,3 +39,9 @@ def get_all_distances(instance: Cargo) -> list[DeliveryCar]:
     except AttributeError:
         return []
     return all_delivery_cars_with_distance_to_cargo
+
+
+def get_possible_locations():
+    queryset = Location.objects.order_by('pk').all()
+    possible_ids = list(queryset.values_list('id', flat=True))
+    return possible_ids

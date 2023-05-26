@@ -17,3 +17,25 @@ services:
       - .env.prod
     depends_on:
       - db
+
+  celery-beat:
+    build: ./
+    command: celery --app src beat -l info
+    env_file:
+      - .env.prod
+    depends_on:
+      - web
+      - redis
+
+  celery:
+    build: ./
+    command: celery -A src worker --loglevel=info
+    env_file:
+      - .env.prod
+    depends_on:
+      - web
+      - redis
+      - celery-beat
+
+  redis:
+    image: redis:7.0.11-alpine

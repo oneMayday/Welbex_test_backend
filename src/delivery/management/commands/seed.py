@@ -6,6 +6,7 @@ from random import choice, randint
 from django.core.management import BaseCommand
 
 from delivery.models import Location, DeliveryCar
+from delivery.services import get_possible_locations
 from src.settings import BASE_DIR
 
 
@@ -13,7 +14,7 @@ from src.settings import BASE_DIR
 # 'Clear' mode only for clearing
 MODE_REFRESH = 'seed'
 MODE_CLEAR = 'clear'
-SEEDING_FILE_NAME = 'uszips_fortest.csv'
+SEEDING_FILE_NAME = 'uszips.csv'
 
 
 class Command(BaseCommand):
@@ -51,13 +52,13 @@ def create_locations():
         Location.objects.bulk_create(temp_locations_list, batch_size=999)
 
 
-def create_delivery_machines(number_of_machines: int = 10):
+def create_delivery_machines(number_of_machines: int = 20):
     """ Create database records (DeliveryCar) """
-    possible_ids = get_possible_ids()
+    possible_locations = get_possible_locations()
 
     for i in range(number_of_machines):
         new_car = DeliveryCar(
-                current_location=Location.objects.get(pk=choice(possible_ids)),
+                current_location=Location.objects.get(pk=choice(possible_locations)),
                 tonnage=randint(1000, 10001)
             )
         new_car.save()
@@ -76,9 +77,3 @@ def clear_data():
     """Delete all locations and cars from database"""
     DeliveryCar.objects.all().delete()
     Location.objects.all().delete()
-
-
-def get_possible_ids():
-    queryset = Location.objects.order_by('pk').all()
-    possible_ids = list(queryset.values_list('id', flat=True))
-    return possible_ids
