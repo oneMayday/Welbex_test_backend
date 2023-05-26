@@ -10,6 +10,7 @@ click-repl==0.2.0
 cron-descriptor==1.4.0
 Django==4.2.1
 django-celery-beat==2.5.0
+django-filter==23.2
 django-timezone-field==5.0
 djangorestframework==3.14.0
 geographiclib==2.0
