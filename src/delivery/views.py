@@ -1,15 +1,16 @@
 from rest_framework import viewsets
-from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin
+from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, ListModelMixin
 from rest_framework.viewsets import GenericViewSet
 
-from delivery.models import Cargo, DeliveryCar
-from delivery.serializers import DeliveryCarUpdateSerializer, CargoSerializer, CargoUpdateSerializer, \
-    CargoCreateSerializer
-
-
-class DeliveryCarUpdateAPIView(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
-    queryset = DeliveryCar.objects.all()
-    serializer_class = DeliveryCarUpdateSerializer
+from delivery.models import Cargo, DeliveryCar, Location
+from delivery.serializers import (
+    CargoUpdateSerializer,
+    CargoCreateSerializer,
+    CargoListSerializer,
+    CargoDetailSerializer,
+    DeliveryCarUpdateSerializer,
+    LocationSerializer,
+)
 
 
 class CargoAPIView(viewsets.ModelViewSet):
@@ -20,6 +21,18 @@ class CargoAPIView(viewsets.ModelViewSet):
             serializer_class = CargoUpdateSerializer
         elif self.action == 'create':
             serializer_class = CargoCreateSerializer
+        elif self.action == 'list':
+            serializer_class = CargoListSerializer
         else:
-            serializer_class = CargoSerializer
+            serializer_class = CargoDetailSerializer
         return serializer_class
+
+
+class DeliveryCarAPIView(ListModelMixin, RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
+    queryset = DeliveryCar.objects.all()
+    serializer_class = DeliveryCarUpdateSerializer
+
+
+class LocationAPIView(ListModelMixin, RetrieveModelMixin, GenericViewSet):
+    queryset = Location.objects.all()
+    serializer_class = LocationSerializer

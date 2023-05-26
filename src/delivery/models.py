@@ -14,8 +14,8 @@ class Location(models.Model):
 
 
 class Cargo(models.Model):
-	pickup_location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True, related_name='pickup')
-	delivery_location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True, related_name='delivery')
+	pickup = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True, related_name='pickup')
+	delivery = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True, related_name='delivery')
 	weight = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(1000)])
 	description = models.TextField(max_length=1000)
 	created_at = models.DateTimeField(auto_now_add=True)
@@ -36,6 +36,7 @@ class DeliveryCar(models.Model):
 
 	def save(self, *args, **kwargs):
 		super().save(*args, **kwargs)
+		# Assign new random car_id
 		if not self.car_id:
 			allowed_letters = string.ascii_uppercase
 			self.car_id = str(random.randrange(1000, 10000)) + random.choice(allowed_letters)

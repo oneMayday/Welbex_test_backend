@@ -1,59 +1,93 @@
 from rest_framework import serializers
 
 from delivery.models import Location, Cargo, DeliveryCar
+from delivery.services import get_cars_nearby, get_all_distances
 
 
+# Location model serializers
 class LocationSerializer(serializers.ModelSerializer):
-    city = serializers.CharField(read_only=True)
-    state = serializers.CharField(read_only=True)
-    longitude = serializers.CharField(read_only=True)
-    latitude = serializers.CharField(read_only=True)
-
     class Meta:
         model = Location
-        fields = ('zip', 'city', 'state', 'longitude', 'latitude',)
+        fields = '__all__'
+        read_only_fields = ('__all__',)
 
 
-class DeliveryCarUpdateSerializer(serializers.ModelSerializer):
-    current_location = LocationSerializer(many=False)
+class LocationSimpledSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = ('zip', 'city', 'state',)
+        read_only_fields = ('city', 'state',)
+
+
+# DeliveryCar model serializers
+class DeliveryCarsCargoDetailSerializer(serializers.ModelSerializer):
+    distance = serializers.CharField()
 
     class Meta:
         model = DeliveryCar
-        fields = ('car_id', 'current_location',)
+        fields = ('pk', 'car_id', 'distance',)
+
+
+class DeliveryCarUpdateSerializer(serializers.ModelSerializer):
+    current_location = LocationSimpledSerializer(many=False)
+
+    class Meta:
+        model = DeliveryCar
+        fields = ('pk', 'car_id', 'current_location',)
 
     def update(self, instance, validated_data):
         new_location = validated_data.get('current_location', instance.current_location)
         new_location_zip = new_location.get('zip')
 
-        new_location = Location.objects.get(zip=new_location_zip)
+        try:
+            new_location = Location.objects.get(zip=new_location_zip)
+        except Exception:
+            msg = 'Wrong zip code'
+            raise Exception(msg)
+
         instance.current_location = new_location
         instance.save()
         return instance
 
 
-class CargoSerializer(serializers.ModelSerializer):
+# Cargo model serializers
+class CargoDetailSerializer(serializers.ModelSerializer):
+    pickup = LocationSimpledSerializer(many=False)
+    delivery = LocationSimpledSerializer(many=False)
+    allowed_cars = serializers.SerializerMethodField()
+
     class Meta:
         model = Cargo
-        exclude = ('created_at', 'updated_at',)
+        fields = ('pk', 'weight', 'description', 'pickup', 'delivery', 'allowed_cars',)
+
+    def get_allowed_cars(self, instance):
+        """ Get all deliverycars with distances to cargo"""
+        cars_nearby = get_all_distances(instance)
+        serialized_data = DeliveryCarsCargoDetailSerializer(cars_nearby, many=True)
+        return serialized_data.data
 
 
-# class CargoListSerializer(serializers.ModelSerializer):
-#     pickup_location = LocationSerializer(many=False)
-#     delivery_location = LocationSerializer(many=False)
-#     cars_nearby =
-#
-#     class Meta:
-#         model = Cargo
-#         fields = ('pk', 'pickup_location', 'delivery_location', 'cars_nearby')
+class CargoListSerializer(serializers.ModelSerializer):
+    pickup = LocationSimpledSerializer(many=False)
+    delivery = LocationSimpledSerializer(many=False)
+    cars_nearby = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Cargo
+        fields = ('pk', 'pickup', 'delivery', 'cars_nearby',)
+
+    def get_cars_nearby(self, instance):
+        quantity_cars_nearby = len(get_cars_nearby(instance))
+        return quantity_cars_nearby
 
 
 class CargoCreateSerializer(serializers.ModelSerializer):
-    pickup_location = LocationSerializer(many=False)
-    delivery_location = LocationSerializer(many=False)
+    pickup_location = LocationSimpledSerializer(many=False)
+    delivery_location = LocationSimpledSerializer(many=False)
 
     class Meta:
         model = Cargo
-        fields = ('pk', 'weight', 'description', 'pickup_location', 'delivery_location', )
+        fields = ('weight', 'description', 'pickup_location', 'delivery_location', )
 
     def create(self, validated_data):
         weight = validated_data.get('weight')
@@ -61,20 +95,24 @@ class CargoCreateSerializer(serializers.ModelSerializer):
         location_pickup_zip = validated_data.get('pickup_location').get('zip')
         location_delivery_zip = validated_data.get('delivery_location').get('zip')
 
-        location_pickup = Location.objects.get(zip=location_pickup_zip)
-        location_delivery = Location.objects.get(zip=location_delivery_zip)
+        try:
+            location_pickup = Location.objects.get(zip=location_pickup_zip)
+            location_delivery = Location.objects.get(zip=location_delivery_zip)
+        except Exception:
+            msg = 'Wrong zip codes'
+            raise Exception(msg)
 
         try:
             instance = Cargo.objects.create(
                 pickup_location=location_pickup,
                 delivery_location=location_delivery,
-                weight = weight,
+                weight=weight,
                 description = description
             )
             return instance
         except TypeError:
             msg = "Can't create new cargo instance"
-            raise TypeError(msg)
+            raise Exception(msg)
 
 
 class CargoUpdateSerializer(serializers.ModelSerializer):

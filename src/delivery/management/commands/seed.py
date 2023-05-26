@@ -1,7 +1,7 @@
-import random
-from itertools import islice
 from csv import reader
 from decimal import Decimal
+from itertools import islice
+from random import choice, randint
 
 from django.core.management import BaseCommand
 
@@ -23,18 +23,22 @@ class Command(BaseCommand):
         parser.add_argument('--mode', type=str, help="Mode")
 
     def handle(self, *args, **options):
-        self.stdout.write('Seeding database...')
+        if options['mode'] == 'seed':
+            message = 'Seeding'
+        else:
+            message = 'Clearing'
+
+        self.stdout.write(f'{message} database...')
         run_seed(self, options['mode'])
-        self.stdout.write('Seeding is done!')
+        self.stdout.write(f'{message} is done!')
 
 
 def create_locations():
-    """ Create database records (Location) from csv-file model: """
+    """ Create database records (Location) from csv-file: """
     temp_locations_list = []
     with open(f'{BASE_DIR}/{SEEDING_FILE_NAME}', encoding='utf-8') as seed_file:
         data = islice(reader(seed_file), 1, None)
         for row in data:
-
             temp_locations_list.append(
                 Location(
                     city=row[5],
@@ -53,8 +57,8 @@ def create_delivery_machines(number_of_machines: int = 10):
 
     for i in range(number_of_machines):
         new_car = DeliveryCar(
-                current_location=Location.objects.get(pk=random.choice(possible_ids)),
-                tonnage=random.randint(1000, 10001)
+                current_location=Location.objects.get(pk=choice(possible_ids)),
+                tonnage=randint(1000, 10001)
             )
         new_car.save()
 
